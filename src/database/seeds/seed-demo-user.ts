@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { v7 as uuidv7 } from 'uuid';
+import { uuidv7 } from '../../common/uuidv7';
 import { UnitConverterRegistry } from '../../units/unit-converter.registry';
 
 export const DEMO_USER_ID = 'demo-user';

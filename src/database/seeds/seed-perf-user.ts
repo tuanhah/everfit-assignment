@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { v7 as uuidv7 } from 'uuid';
+import { uuidv7 } from '../../common/uuidv7';
 
 export const PERF_USER_ID = 'perf-user';
 export const PERF_ENTRY_COUNT = 50_000;

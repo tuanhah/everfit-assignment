@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
-import { v7 as uuidv7 } from 'uuid';
+import { uuidv7 } from '../common/uuidv7';
 import { AppErrorCode } from '../common/errors/app-errors';
 import { decodeCursor, encodeCursor } from '../common/pagination/cursor.util';
 import { ExercisesService } from '../exercises/exercises.service';
