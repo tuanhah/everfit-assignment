@@ -102,3 +102,7 @@ release-manifest.json
 .claude/metadata.json
 .claude/**/__pycache__
 .claude/hooks/.logs/
+
+# local walkthrough notes (not part of the submission)
+/step.md
+/test_api.md
