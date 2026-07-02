@@ -23,4 +23,5 @@ COPY --from=build /app/dist ./dist
 # Run as non-root user provided by the node image
 USER node
 
-CMD ["node", "dist/main"]
+# Apply pending migrations, then start the API.
+CMD ["sh", "-c", "node_modules/.bin/typeorm migration:run -d dist/database/data-source.js && node dist/main"]
