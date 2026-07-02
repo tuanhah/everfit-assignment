@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { envValidationSchema } from './config/env.validation';
 import { ExercisesModule } from './exercises/exercises.module';
+import { RecordsModule } from './records/records.module';
 import { UnitsModule } from './units/units.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 
@@ -29,6 +30,7 @@ import { WorkoutsModule } from './workouts/workouts.module';
     UnitsModule,
     ExercisesModule,
     WorkoutsModule,
+    RecordsModule,
   ],
 })
 export class AppModule {}

@@ -51,7 +51,8 @@ export class ExercisesService {
     return created;
   }
 
-  private findByName(name: string): Promise<Exercise | null> {
+  /** Exact-name lookup, case-insensitive (rides the LOWER(name) index). */
+  findByName(name: string): Promise<Exercise | null> {
     return this.repository
       .createQueryBuilder('exercise')
       .where('LOWER(exercise.name) = LOWER(:name)', { name })
