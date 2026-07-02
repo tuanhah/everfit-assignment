@@ -57,8 +57,6 @@ GoogleService-Info.plist
 
 repomix-output.xml
 .serena/cache
-plans/**/*
-!plans/templates/*
 screenshots/*
 docs/screenshots/*
 logs.txt
@@ -69,10 +67,6 @@ __pycache__
 prompt.md
 ck.md
 
-# Generated runtime layout for release/install smoke tests
-/.claude/
-# But track repo-level rules that Claude Code reads
-!/.claude/rules/
 
 # Local-only state inside tracked claude source
 claude/agent-memory/
@@ -99,3 +93,11 @@ worktrees/
 # claudekit internal
 release-manifest.json
 .repomixignore
+
+# claude tooling internals (vendor deps, local state)
+.claude/skills/.venv
+.claude/**/node_modules
+.claude/session-state
+.claude/settings.local.json
+.claude/metadata.json
+.claude/**/__pycache__
