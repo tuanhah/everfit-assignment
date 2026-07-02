@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LoggerModule } from 'nestjs-pino';
 import { envValidationSchema } from './config/env.validation';
 import { ExercisesModule } from './exercises/exercises.module';
+import { HealthModule } from './health/health.module';
 import { RecordsModule } from './records/records.module';
 import { UnitsModule } from './units/units.module';
 import { WorkoutsModule } from './workouts/workouts.module';
@@ -12,6 +14,21 @@ import { WorkoutsModule } from './workouts/workouts.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: envValidationSchema,
+    }),
+    // Structured JSON request logging with request ids; human-readable
+    // pretty printing only outside production.
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        pinoHttp: {
+          level: config.get('NODE_ENV') === 'test' ? 'silent' : 'info',
+          transport:
+            config.get('NODE_ENV') === 'development'
+              ? { target: 'pino-pretty', options: { singleLine: true } }
+              : undefined,
+          redact: ['req.headers.authorization'],
+        },
+      }),
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -31,6 +48,7 @@ import { WorkoutsModule } from './workouts/workouts.module';
     ExercisesModule,
     WorkoutsModule,
     RecordsModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
