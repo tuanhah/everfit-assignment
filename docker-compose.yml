@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-everfit}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-everfit}
+      POSTGRES_DB: ${DB_NAME:-workout_db}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-everfit} -d ${DB_NAME:-workout_db}']
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-everfit}
+      DB_PASSWORD: ${DB_PASSWORD:-everfit}
+      DB_NAME: ${DB_NAME:-workout_db}
+    ports:
+      - '${PORT:-3000}:3000'
+
+volumes:
+  pgdata:
