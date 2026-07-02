@@ -1,0 +1,25 @@
+{
+  "exercises": [
+    { "name": "Bench Press", "muscleGroup": "chest" },
+    { "name": "Incline Dumbbell Press", "muscleGroup": "chest" },
+    { "name": "Cable Fly", "muscleGroup": "chest" },
+    { "name": "Deadlift", "muscleGroup": "back" },
+    { "name": "Barbell Row", "muscleGroup": "back" },
+    { "name": "Pull Up", "muscleGroup": "back" },
+    { "name": "Lat Pulldown", "muscleGroup": "back" },
+    { "name": "Squat", "muscleGroup": "legs" },
+    { "name": "Leg Press", "muscleGroup": "legs" },
+    { "name": "Romanian Deadlift", "muscleGroup": "legs" },
+    { "name": "Walking Lunge", "muscleGroup": "legs" },
+    { "name": "Leg Curl", "muscleGroup": "legs" },
+    { "name": "Overhead Press", "muscleGroup": "shoulders" },
+    { "name": "Lateral Raise", "muscleGroup": "shoulders" },
+    { "name": "Face Pull", "muscleGroup": "shoulders" },
+    { "name": "Barbell Curl", "muscleGroup": "biceps" },
+    { "name": "Hammer Curl", "muscleGroup": "biceps" },
+    { "name": "Tricep Pushdown", "muscleGroup": "triceps" },
+    { "name": "Close-Grip Bench Press", "muscleGroup": "triceps" },
+    { "name": "Cable Crunch", "muscleGroup": "core" },
+    { "name": "Hanging Leg Raise", "muscleGroup": "core" }
+  ]
+}
