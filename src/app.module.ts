@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { envValidationSchema } from './config/env.validation';
 import { ExercisesModule } from './exercises/exercises.module';
 import { UnitsModule } from './units/units.module';
+import { WorkoutsModule } from './workouts/workouts.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UnitsModule } from './units/units.module';
     }),
     UnitsModule,
     ExercisesModule,
+    WorkoutsModule,
   ],
 })
 export class AppModule {}
