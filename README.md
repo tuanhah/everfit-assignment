@@ -79,8 +79,8 @@ flowchart TB
     WS --> T2 & T3
     RS --> T3
     ES --> T1
-    T2 -- FK --> T1
-    T3 -- FK cascade --> T2
+    T2 -. soft ref .-> T1
+    T3 -. soft ref .-> T2
 ```
 
 Module boundaries: `units/` (conversion registry), `exercises/` (catalog +
