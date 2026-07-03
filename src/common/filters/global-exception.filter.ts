@@ -83,15 +83,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   private codeFromStatus(status: number): AppErrorCode {
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return AppErrorCode.VALIDATION_ERROR;
-      case HttpStatus.NOT_FOUND:
-        return AppErrorCode.NOT_FOUND;
-      default:
-        return status >= 500
-          ? AppErrorCode.INTERNAL
-          : AppErrorCode.VALIDATION_ERROR;
+    if (status === 400) {
+      return AppErrorCode.VALIDATION_ERROR;
     }
+    if (status === 404) {
+      return AppErrorCode.NOT_FOUND;
+    }
+    return status >= 500
+      ? AppErrorCode.INTERNAL
+      : AppErrorCode.VALIDATION_ERROR;
   }
 }
