@@ -23,12 +23,20 @@ export async function createTestApp(): Promise<INestApplication> {
   return app;
 }
 
-/** Removes all workout data for the given users (sets cascade). */
+/**
+ * Removes all workout data for the given users.
+ * Foreign keys are soft (no DB CASCADE), so children go first.
+ */
 export async function cleanupUsers(
   app: INestApplication,
   userIds: string[],
 ): Promise<void> {
   const dataSource = app.get(DataSource);
+  await dataSource.query(
+    `DELETE FROM sets WHERE entry_id IN
+       (SELECT id FROM workout_entries WHERE user_id = ANY($1))`,
+    [userIds],
+  );
   await dataSource.query(
     `DELETE FROM workout_entries WHERE user_id = ANY($1)`,
     [userIds],

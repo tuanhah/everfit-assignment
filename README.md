@@ -169,11 +169,11 @@ exercises        id SERIAL PK · name TEXT · muscle_group TEXT
                  UNIQUE INDEX ux_exercises_name_lower (LOWER(name))
 
 workout_entries  id UUID PK (UUIDv7, app-generated) · user_id TEXT
-                 exercise_id FK · workout_date DATE · logged_at TIMESTAMPTZ
+                 exercise_id (soft ref) · workout_date DATE · logged_at TIMESTAMPTZ
                  INDEX ix_entries_user_exercise_date (user_id, exercise_id, workout_date DESC)
                  INDEX ix_entries_user_date_id      (user_id, workout_date DESC, id DESC)
 
-sets             id BIGSERIAL PK · entry_id FK CASCADE · position · reps
+sets             id BIGSERIAL PK · entry_id (soft ref) · position · reps
                  weight_original NUMERIC(8,3) · unit_original TEXT
                  weight_kg NUMERIC(8,3)
                  volume_kg  GENERATED ALWAYS AS (reps * weight_kg) STORED
@@ -185,7 +185,18 @@ sets             id BIGSERIAL PK · entry_id FK CASCADE · position · reps
 **Why PostgreSQL over MongoDB.** PRs and history are aggregation problems
 (`MAX` over computed values, multi-filter range scans). Relational sets +
 composite B-tree indexes + generated columns answer them with single indexed
-queries; CHECK constraints and FKs enforce integrity below the app layer.
+queries; CHECK constraints enforce value sanity below the app layer.
+
+**Why soft foreign keys (no `REFERENCES`).** Table relationships are enforced
+at the application layer, not by FK constraints. The write path only ever
+inserts ids it resolved or created within the same request (exercise ids come
+from `findOrCreateByName`, entry ids are generated app-side immediately before
+their sets), and the API has no delete endpoints — so the orphan-creating
+scenarios FKs guard against don't exist in this codebase. Dropping them keeps
+the hot insert path free of per-row FK lookups and keeps the schema ready for
+partitioning (Postgres FKs cannot span partitions). Trade-off accepted: the
+DB no longer blocks orphans, so any future delete feature must remove children
+first (the test cleanup helper already follows this discipline).
 
 **Why generated columns.** Workout data is append-only and read-heavy —
 compute once at write, read many. The Epley/volume formulas live in exactly

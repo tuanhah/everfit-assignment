@@ -11,6 +11,13 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *   ORDER BY exactly so pages read straight off the index without sorting
  * - volume_kg / est_1rm_kg GENERATED STORED → PR queries are indexed MAX()
  *   with the formulas defined in exactly one place
+ *
+ * References between tables are SOFT (no FK constraints) by design:
+ * the app owns referential integrity — inserts only use ids it resolved
+ * or created in the same request, and there are no delete endpoints.
+ * This keeps the hot insert path free of FK lookups and the schema
+ * ready for partitioning (FKs cannot span partitions). Trade-off
+ * (DB no longer blocks orphans) is documented in the README.
  */
 export class InitialSchema1782988851000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -31,7 +38,7 @@ export class InitialSchema1782988851000 implements MigrationInterface {
       CREATE TABLE workout_entries (
         id           UUID PRIMARY KEY,
         user_id      TEXT NOT NULL,
-        exercise_id  INT NOT NULL REFERENCES exercises (id),
+        exercise_id  INT NOT NULL,
         workout_date DATE NOT NULL,
         logged_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -49,7 +56,7 @@ export class InitialSchema1782988851000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TABLE sets (
         id              BIGSERIAL PRIMARY KEY,
-        entry_id        UUID NOT NULL REFERENCES workout_entries (id) ON DELETE CASCADE,
+        entry_id        UUID NOT NULL,
         position        INT NOT NULL,
         reps            INT NOT NULL,
         weight_original NUMERIC(8,3) NOT NULL,

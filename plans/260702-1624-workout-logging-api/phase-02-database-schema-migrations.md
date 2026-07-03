@@ -32,7 +32,7 @@ exercises
 workout_entries
   id              UUID PK                    -- UUIDv7, app-generated (uuid npm pkg); no DB default
   user_id         TEXT NOT NULL              -- no auth; opaque param per PDF
-  exercise_id     INT NOT NULL FK → exercises
+  exercise_id     INT NOT NULL               -- SOFT ref → exercises (REVISED 2026-07-03: user dropped hard FKs)
   workout_date    DATE NOT NULL              -- business date, client-decided
   logged_at       TIMESTAMPTZ NOT NULL DEFAULT now()  -- audit, UTC
   created_at      TIMESTAMPTZ DEFAULT now()
@@ -41,7 +41,7 @@ workout_entries
 
 sets
   id              BIGSERIAL PK
-  entry_id        UUID NOT NULL FK → workout_entries ON DELETE CASCADE
+  entry_id        UUID NOT NULL              -- SOFT ref → workout_entries; deletes remove children first
   position        INT NOT NULL               -- set order within entry
   reps            INT NOT NULL CHECK (reps > 0)
   weight_original NUMERIC(8,3) NOT NULL CHECK (weight_original >= 0)
@@ -57,6 +57,7 @@ sets
 - `unit_original` TEXT not enum → adding `stone` requires zero migration (extensibility criterion).
 - `weight_kg` app-computed (registry owns factors); `volume_kg`/`est_1rm_kg` DB-generated (pure math on stored cols) → PR = indexed MAX, no runtime compute.
 - Concurrency (user decision, no idempotency key): logging is append-only — no read-modify-write, so no lost updates possible; each request is an independent valid event (2 identical sets same day = legitimate gym data). Atomicity via transaction only. Document this rationale in README + video; note idempotency key as future extension for client-retry dedup.
+- Soft foreign keys (user decision 2026-07-03, REVISED from hard FKs): app owns referential integrity — write path only inserts ids resolved/created in the same request; no delete endpoints exist. Keeps insert path free of FK lookups, partition-ready. Trade-off (DB doesn't block orphans) documented in README; deletes must remove children first (test cleanup helper does).
 
 ## Related Code Files
 

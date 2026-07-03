@@ -73,6 +73,18 @@ became a design argument instead of a mechanism — less code, fewer failure
 modes, documented in the README with idempotency keys named as the extension
 point if client-retry dedup ever becomes a requirement.
 
+### Hard foreign keys — rejected against the AI's recommendation
+
+The reverse case: the AI generated (and argued to keep) `REFERENCES`
+constraints with `ON DELETE CASCADE`. I overruled it and moved to soft
+references enforced at the application layer: this codebase's write path only
+inserts ids it resolved or created within the same request, there are no
+delete endpoints, and dropping FKs keeps the insert path free of per-row FK
+lookups while staying partition-ready. The AI pushed back with the integrity
+trade-offs (orphan risk, manual child-first deletes), which are real and are
+documented in the README — but the decision is mine, and disagreeing with the
+tool's recommendation while owning the consequences is part of using it well.
+
 Also rejected along the way: **DB enum for units** (a new unit must be a
 one-line registry change, not a migration) and **offset pagination**
 (degrades linearly with depth; keyset stays flat at 50k+ entries — verified

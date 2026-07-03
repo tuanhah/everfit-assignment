@@ -28,8 +28,9 @@ export class WorkoutSet {
   @Column({ type: 'uuid', name: 'entry_id' })
   entryId: string;
 
+  /** Soft reference — no DB-level FK; deletes must remove sets first. */
   @ManyToOne(() => WorkoutEntry, (entry) => entry.sets, {
-    onDelete: 'CASCADE',
+    createForeignKeyConstraints: false,
   })
   @JoinColumn({ name: 'entry_id' })
   entry: WorkoutEntry;

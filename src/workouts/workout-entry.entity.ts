@@ -26,7 +26,8 @@ export class WorkoutEntry {
   @Column({ type: 'int', name: 'exercise_id' })
   exerciseId: number;
 
-  @ManyToOne(() => Exercise)
+  /** Soft reference — no DB-level FK; the app owns integrity. */
+  @ManyToOne(() => Exercise, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'exercise_id' })
   exercise: Exercise;
 
