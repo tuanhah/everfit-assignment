@@ -30,12 +30,11 @@ The work ran through an explicit pipeline rather than ad-hoc prompting:
 
 The AI initially generated UUIDv7 ids via the `uuid` npm package. The app
 built and ran fine — but the entire e2e suite failed to even compile:
-`uuid@14` ships pure ESM, which Jest's CommonJS runtime can't import.
-Rather than patching Jest with `transformIgnorePatterns` workarounds, I had
-it replace the dependency with a 15-line RFC 9562 implementation on Node's
-`crypto` (`src/common/uuidv7.ts`) plus a spec asserting version/variant bits,
-the embedded timestamp, chronological ordering and burst uniqueness. One less
-dependency, no test-runner hacks. (Commit `b7cede2`.)
+`uuid package`just ships pure ESM, which Jest's CommonJS runtime can't import.
+ I had so
+it replace the dependency with a implementation on Node's
+`crypto` (`src/common/uuidv7.ts`). One less
+dependency, no test-runner hacks.
 
 ### 2. Over-specified test assumption about id ordering
 
@@ -49,10 +48,9 @@ actually guarantees (all same-date entries precede older dates) and looks the
 Squat entry up by name instead of position. A good reminder that
 time-ordered ≠ strictly ordered.
 
-### 3. Frontend-flavored `.gitignore` silently excluded the lockfile
+### 3. `.gitignore` silently excluded the lockfile
 
-The repo template's `.gitignore` (Next.js style) ignored `package-lock.json`.
-Discovered only when `git add` refused the file on the very first commit.
+The repo template has ignored `package-lock.json`.
 For a backend service the lockfile is required for reproducible
 `npm ci`/Docker builds, so the ignore line was removed before anything was
 committed. Small, but it would have quietly broken `docker compose up` for
@@ -84,11 +82,8 @@ lookups while staying partition-ready. The AI pushed back with the integrity
 trade-offs (orphan risk, manual child-first deletes), which are real and are
 documented in the README — but the decision is mine, and disagreeing with the
 tool's recommendation while owning the consequences is part of using it well.
+When you define a REFERENCES constraint, the database must perform an index lookup on the parent table to verify the referenced row exists on every single INSERT or UPDATE — this adds measurable latency that multiplies across bulk operations. It also acquires a ShareLock on the parent row for the duration of the transaction, so hundreds of concurrent writes referencing the same parent row will queue up and contend for that lock. The hidden killer is that PostgreSQL does not automatically index the FK column on the child table.
 
-Also rejected along the way: **DB enum for units** (a new unit must be a
-one-line registry change, not a migration) and **offset pagination**
-(degrades linearly with depth; keyset stays flat at 50k+ entries — verified
-at 0.06ms for a mid-dataset page).
 
 ## Prompting Strategy
 
