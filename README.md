@@ -184,6 +184,83 @@ sets             id BIGSERIAL PK · entry_id (soft ref) · position · reps
                  INDEX ix_sets_entry (entry_id)
 ```
 
+### Design decisions
+
+- **PostgreSQL over MongoDB** — PRs and history are aggregation problems
+  (`MAX` over computed values, multi-filter range scans). Relational sets +
+  composite B-tree indexes + generated columns answer them with single
+  indexed queries; CHECK constraints enforce value sanity below the app
+  layer.
+- **Soft foreign keys (no `REFERENCES`)** — relationships are enforced at the
+  application layer. The write path only inserts ids it resolved or created
+  within the same request, and the API has no delete endpoints, so the
+  orphan scenarios FKs guard against don't exist here. Dropping them keeps
+  the hot insert path free of per-row FK lookups and keeps the schema ready
+  for partitioning (Postgres FKs cannot span partitions).
+- **Generated columns** — workout data is append-only and read-heavy:
+  compute once at write, read many. The Epley/volume formulas live in one
+  place (the migration), values can never drift from `reps`/`weight_kg`, and
+  PR queries become `MAX()` over stored columns.
+- **`weight_kg` app-computed** (not a DB formula) — conversion factors
+  belong to the unit registry, so adding a unit is a one-line code change
+  with zero migration (`unit_original` is TEXT, deliberately not an enum).
+- **UUIDv7 for `workout_entries.id`** — time-ordered ids insert sequentially
+  into the B-tree (no random page splits at 50k+ rows/user, unlike UUIDv4)
+  while staying unguessable; generated app-side so a bulk insert needs no
+  RETURNING round-trip. The big table (`sets`) uses plain BIGSERIAL — UUID
+  only where ids are exposed publicly.
+- **Two date columns** — `workout_date DATE` is the business date, decided
+  by the client and never re-interpreted through a server timezone;
+  `logged_at TIMESTAMPTZ` is the audit instant in UTC.
+- **Two-step history load** — entries page first, then sets via one `IN`
+  query; joining sets directly would multiply rows and break `LIMIT`
+  semantics.
+
+Index → query mapping:
+
+| Index | Serves |
+|---|---|
+| `ix_entries_user_date_id` | History pages: matches `ORDER BY workout_date DESC, id DESC` exactly; the cursor's row-tuple seek makes page 1000 cost the same as page 1 (0.06ms mid-dataset at 50k entries) |
+| `ix_entries_user_exercise_date` | PRs + per-exercise history: equality on user+exercise narrows 50k rows to one exercise's ~5k before any math (~16ms over 125k sets) |
+| `ux_exercises_name_lower` | Case-insensitive exercise identity ("bench press" = "Bench Press") |
+| `ix_sets_entry` | Loading a page's sets in one `IN` query |
+
+## Trade-offs & What I'd Change at Scale
+
+Trade-offs accepted:
+
+- **Soft FKs mean the DB no longer blocks orphans** — any future delete
+  feature must remove children first (the test cleanup helper already
+  follows this discipline).
+- **Client-owned `workout_date`** — the server can't answer "which workouts
+  happened before 6am local time" (it never sees local time). For everything
+  this API does — date filtering, history, PRs — client-owned dates are
+  simpler and correct; storing UTC + tz offset adds complexity only needed
+  for time-of-day analytics.
+- **No idempotency keys** — logging is append-only (no read-modify-write),
+  so concurrent requests can't corrupt or lose data, and two identical
+  entries are two legitimate workout events the server must not dedupe
+  silently. If client-retry dedup becomes a requirement, an
+  `Idempotency-Key` header with a `(user_id, key)` unique index is the
+  extension point. Exercise auto-creation races are settled by the
+  `LOWER(name)` unique index + `ON CONFLICT DO NOTHING` + re-select.
+
+At scale (10,000 concurrent coaches):
+
+1. **PR caching** — PRs change only on writes; keep a
+   `user_exercise_records` summary table updated in the write transaction
+   (or async), turning PR reads into single-row lookups.
+2. **Trigram index** (`pg_trgm`) on `exercises.name` if the catalog grows to
+   thousands — today ILIKE runs after the user index narrows the set.
+3. **Read replicas** — history/PR reads dominate; route them to replicas,
+   writes to primary.
+4. **Partitioning** `workout_entries`/`sets` by hash(user_id) once the
+   tables pass ~100M rows, keeping per-user index depth flat.
+5. **Rate limiting + auth** — out of scope per the assignment, first thing
+   to add in reality.
+6. **Connection pooling** (pgbouncer) in front of Postgres for 10k
+   concurrent connections.
+
 ## Known Issues
 
 - `npm audit` reports transitive advisories via the current `@nestjs/core`
