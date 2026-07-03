@@ -171,8 +171,11 @@ export class RecordsService {
       return { range, records: null, message: NO_DATA_MESSAGE };
     }
 
+    // Number() instead of === '1': pg returns bigint as string by default,
+    // but a global type-parser override would silently change that — this
+    // comparison is correct either way.
     const byRank = (key: 'rn_weight' | 'rn_volume' | 'rn_1rm'): PrRow =>
-      rows.find((row) => row[key] === '1') as PrRow;
+      rows.find((row) => Number(row[key]) === 1) as PrRow;
 
     const weightRow = byRank('rn_weight');
     const volumeRow = byRank('rn_volume');
