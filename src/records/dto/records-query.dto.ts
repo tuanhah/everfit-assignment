@@ -11,6 +11,11 @@ import { IsSupportedUnit } from '../../units/is-supported-unit.validator';
 const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 
 export class RecordsQueryDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  userId: string;
+
   /** Exact exercise name (case-insensitive). Required — PRs are per exercise. */
   @IsString()
   @IsNotEmpty()

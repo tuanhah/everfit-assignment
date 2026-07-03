@@ -3,7 +3,7 @@ import request from 'supertest';
 import { uuidv7 } from '../src/common/uuidv7';
 import { cleanupUsers, createTestApp } from './utils/create-test-app';
 
-describe('GET /users/:userId/records (e2e)', () => {
+describe('GET /records (e2e)', () => {
   let app: INestApplication;
   const userId = `e2e-pr-${uuidv7()}`;
 
@@ -63,8 +63,8 @@ describe('GET /users/:userId/records (e2e)', () => {
 
   const get = (query: Record<string, string> = {}) =>
     request(app.getHttpServer())
-      .get(`/users/${userId}/records`)
-      .query({ exercise: 'Bench Press', ...query });
+      .get('/records')
+      .query({ userId, exercise: 'Bench Press', ...query });
 
   it('returns all three PR types with the date each was achieved', async () => {
     const response = await get().expect(200);
@@ -134,8 +134,8 @@ describe('GET /users/:userId/records (e2e)', () => {
       .expect(201);
 
     const response = await request(app.getHttpServer())
-      .get(`/users/${singleUser}/records`)
-      .query({ exercise: 'Cable Crunch' })
+      .get('/records')
+      .query({ userId: singleUser, exercise: 'Cable Crunch' })
       .expect(200);
 
     const { records } = response.body.data.current;

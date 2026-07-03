@@ -22,7 +22,7 @@ Try it immediately with the seeded data:
 curl "localhost:3000/workouts?userId=demo-user&exercise=bench&unit=lb"
 
 # PRs: June vs May comparison with deltas
-curl "localhost:3000/users/demo-user/records?exercise=Bench%20Press&from=2026-06-01&to=2026-06-30&compareFrom=2026-05-01&compareTo=2026-05-31"
+curl "localhost:3000/records?userId=demo-user&exercise=Bench%20Press&from=2026-06-01&to=2026-06-30&compareFrom=2026-05-01&compareTo=2026-05-31"
 
 # Performance check against the 50k-entry user
 curl "localhost:3000/workouts?userId=perf-user&limit=50"
@@ -59,7 +59,7 @@ flowchart TB
             CU[Cursor util<br/>keyset pagination]
         end
         WC[WorkoutsController<br/>POST /workouts - GET /workouts]
-        RC[RecordsController<br/>GET /users/:userId/records]
+        RC[RecordsController<br/>GET /records]
         HC[HealthController]
         WS[WorkoutsService] --> UR[UnitConverterRegistry]
         RS[RecordsService] --> UR
@@ -132,10 +132,10 @@ Query params: `userId` (required), `exercise` (partial match), `from`, `to`,
   always preserved.
 - An empty result is `200` with `data: []` and a human message — not an error.
 
-### GET /users/:userId/records — personal records
+### GET /records — personal records
 
-Query params: `exercise` (required, exact case-insensitive), `from`, `to`,
-`compareFrom` + `compareTo` (pair), `unit`.
+Query params: `userId` (required), `exercise` (required, exact
+case-insensitive), `from`, `to`, `compareFrom` + `compareTo` (pair), `unit`.
 
 - Returns max weight, max volume (reps × weight) and best estimated 1RM
   (Epley: `weight × (1 + reps/30)`), each with the date it was **first**

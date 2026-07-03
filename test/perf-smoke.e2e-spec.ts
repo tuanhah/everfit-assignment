@@ -52,8 +52,8 @@ describe('performance smoke at 50k entries (e2e)', () => {
   it('serves PRs over ~12k sets of one exercise within budget', async () => {
     const started = Date.now();
     const response = await request(app.getHttpServer())
-      .get(`/users/${PERF_USER_ID}/records`)
-      .query({ exercise: 'Bench Press' })
+      .get('/records')
+      .query({ userId: PERF_USER_ID, exercise: 'Bench Press' })
       .expect(200);
     const elapsed = Date.now() - started;
 

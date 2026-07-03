@@ -73,10 +73,8 @@ export class RecordsService {
     private readonly unitConverter: UnitConverterRegistry,
   ) {}
 
-  async getRecords(
-    userId: string,
-    query: RecordsQueryDto,
-  ): Promise<RecordsResponse> {
+  async getRecords(query: RecordsQueryDto): Promise<RecordsResponse> {
+    const { userId } = query;
     this.assertValidRanges(query);
 
     const exercise = await this.exercisesService.findByName(query.exercise);
