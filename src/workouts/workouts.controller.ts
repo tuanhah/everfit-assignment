@@ -9,8 +9,10 @@ export class WorkoutsController {
 
   @Post()
   async logWorkout(@Body() dto: LogWorkoutDto) {
-    const entries = await this.workoutsService.logWorkout(dto);
-    return { data: { entries } };
+    // Envelope convention across all endpoints: `data` is the payload
+    // itself (array for collections, object for a single resource);
+    // metadata like pagination/message are siblings of `data`.
+    return { data: await this.workoutsService.logWorkout(dto) };
   }
 
   @Get()

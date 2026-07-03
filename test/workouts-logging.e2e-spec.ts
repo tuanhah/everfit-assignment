@@ -40,7 +40,7 @@ describe('POST /workouts (e2e)', () => {
       .send(validBody())
       .expect(201);
 
-    const entries = response.body.data.entries;
+    const entries = response.body.data;
     expect(entries).toHaveLength(2);
     expect(entries[0].muscleGroup).toBe('chest');
     // 225 lb -> 102.058 kg (avoirdupois factor)
