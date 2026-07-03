@@ -116,6 +116,12 @@ describe('GET /workouts (e2e)', () => {
     expect(new Set(seen).size).toBe(10);
   });
 
+  it('treats LIKE wildcards in the exercise filter as literals', async () => {
+    // "%" must not match everything — no exercise name contains a literal %.
+    const response = await get({ exercise: '%' }).expect(200);
+    expect(response.body.data).toEqual([]);
+  });
+
   it('returns 200 with a message for an empty date range', async () => {
     const response = await get({
       from: '2020-01-01',

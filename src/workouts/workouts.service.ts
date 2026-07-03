@@ -144,8 +144,12 @@ export class WorkoutsService {
       .take(limit + 1);
 
     if (query.exercise) {
+      // Escape LIKE wildcards so a literal "%" or "_" in the search term
+      // matches itself instead of acting as a pattern (injection-safe
+      // either way — this is about filter semantics, not security).
+      const escaped = query.exercise.replace(/[\\%_]/g, '\\$&');
       qb.andWhere('exercise.name ILIKE :exercise', {
-        exercise: `%${query.exercise}%`,
+        exercise: `%${escaped}%`,
       });
     }
     if (query.muscleGroup) {
