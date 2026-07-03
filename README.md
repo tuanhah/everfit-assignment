@@ -4,6 +4,8 @@ A workout logging API for coaches to track client metrics over time: log
 exercises (bulk, multi-unit), browse filtered history, and track personal
 records — built with NestJS + PostgreSQL + TypeORM.
 
+📹 **Walkthrough video:** [Google Drive](https://drive.google.com/file/d/1KjWUigjOY-klGTj4oO16tQCMDzezQCQ0/view?usp=sharing)
+
 ## Quick Start
 
 ```bash
