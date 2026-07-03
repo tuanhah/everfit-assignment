@@ -29,12 +29,11 @@ The work ran through an explicit pipeline rather than ad-hoc prompting:
 ### 1. ESM-only `uuid` package broke the test suite
 
 The AI initially generated UUIDv7 ids via the `uuid` npm package. The app
-built and ran fine — but the entire e2e suite failed to even compile:
-`uuid package`just ships pure ESM, which Jest's CommonJS runtime can't import.
- I had so
-it replace the dependency with a implementation on Node's
-`crypto` (`src/common/uuidv7.ts`). One less
-dependency, no test-runner hacks.
+built and ran fine — but the entire e2e suite failed to even compile: the
+`uuid` package ships pure ESM, which Jest's CommonJS runtime can't import.
+Instead of patching Jest with transform hacks, I had the AI replace the
+dependency with a small local implementation on Node's built-in `crypto`
+(`src/common/uuidv7.ts`). One less dependency, no test-runner hacks.
 
 ### 2. Over-specified test assumption about id ordering
 
@@ -75,14 +74,19 @@ point if client-retry dedup ever becomes a requirement.
 
 The reverse case: the AI generated (and argued to keep) `REFERENCES`
 constraints with `ON DELETE CASCADE`. I overruled it and moved to soft
-references enforced at the application layer: this codebase's write path only
-inserts ids it resolved or created within the same request, there are no
-delete endpoints, and dropping FKs keeps the insert path free of per-row FK
-lookups while staying partition-ready. The AI pushed back with the integrity
-trade-offs (orphan risk, manual child-first deletes), which are real and are
-documented in the README — but the decision is mine, and disagreeing with the
-tool's recommendation while owning the consequences is part of using it well.
-When you define a REFERENCES constraint, the database must perform an index lookup on the parent table to verify the referenced row exists on every single INSERT or UPDATE — this adds measurable latency that multiplies across bulk operations. It also acquires a ShareLock on the parent row for the duration of the transaction, so hundreds of concurrent writes referencing the same parent row will queue up and contend for that lock. The hidden killer is that PostgreSQL does not automatically index the FK column on the child table.
+references enforced at the application layer. The cost of hard FKs is real
+on a write-heavy path: every child INSERT triggers an index lookup on the
+parent table to verify the referenced row exists, and takes a row-level
+share lock on that parent row for the duration of the transaction — so
+concurrent bulk inserts referencing the same parent queue up on that lock.
+None of that buys anything here: this codebase's write path only inserts
+ids it resolved or created within the same request, and there are no delete
+endpoints, so the orphan scenarios FKs guard against can't occur. Dropping
+them also keeps the schema partition-ready (Postgres FKs cannot span
+partitions). The AI pushed back with the integrity trade-offs (orphan risk,
+manual child-first deletes), which are real and are documented in the
+README — but the decision is mine, and disagreeing with the tool's
+recommendation while owning the consequences is part of using it well.
 
 
 ## Prompting Strategy
